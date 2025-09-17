@@ -57,10 +57,14 @@ const StudentTable: React.FC<StudentTableProps> = ({ data }) => {
         <div className="overflow-x-auto">
           <table {...getTableProps()} className="min-w-full bg-white rounded-xl shadow-card border border-gray-200">
             <thead>
-              {headerGroups.map((headerGroup: any) => (
-                <tr {...headerGroup.getHeaderGroupProps()}>
-                  {headerGroup.headers.map((column: any) => (
-                    <th {...column.getHeaderProps(column.getSortByToggleProps())} className="p-3 border-b cursor-pointer text-black bg-white text-lg font-semibold">
+              {headerGroups.map((headerGroup) => (
+                <tr {...headerGroup.getHeaderGroupProps()} key={headerGroup.id}>
+                  {headerGroup.headers.map((column) => (
+                    <th
+                      {...column.getHeaderProps(column.getSortByToggleProps())}
+                      className="p-3 border-b cursor-pointer text-black bg-white text-lg font-semibold"
+                      key={column.id}
+                    >
                       {column.render('Header')}
                       <span>
                         {column.isSorted ? (column.isSortedDesc ? ' 🔽' : ' 🔼') : ''}
@@ -71,12 +75,12 @@ const StudentTable: React.FC<StudentTableProps> = ({ data }) => {
               ))}
             </thead>
             <tbody {...getTableBodyProps()}>
-              {rows.map((row: any) => {
+              {rows.map((row) => {
                 prepareRow(row);
                 return (
-                  <tr {...row.getRowProps()}>
-                    {row.cells.map((cell: any) => (
-                      <td {...cell.getCellProps()} className="p-2 border-b text-center text-black text-base">
+                  <tr {...row.getRowProps()} key={row.id}>
+                    {row.cells.map((cell) => (
+                      <td {...cell.getCellProps()} className="p-2 border-b text-center text-black text-base" key={cell.column.id}>
                         {cell.render('Cell')}
                       </td>
                     ))}
