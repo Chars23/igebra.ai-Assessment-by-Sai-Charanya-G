@@ -60,17 +60,27 @@ const StudentTable: React.FC<StudentTableProps> = ({ data }) => {
               {headerGroups.map((headerGroup: HeaderGroup<Student>) => (
                 <tr {...headerGroup.getHeaderGroupProps()} key={headerGroup.id}>
                   {headerGroup.headers.map((column) => {
-                    // react-table's types don't include getSortByToggleProps/isSorted, so we cast to any for those only
-                    const col = column as HeaderGroup<Student> & { getSortByToggleProps?: () => any; isSorted?: boolean; isSortedDesc?: boolean };
+                    // Type guard for dynamic react-table properties
+                    function hasSortProps(col: unknown): col is { getSortByToggleProps: () => object; isSorted: boolean; isSortedDesc: boolean } {
+                      return (
+                        typeof col === 'object' &&
+                        col !== null &&
+                        'getSortByToggleProps' in col &&
+                        typeof (col as any).getSortByToggleProps === 'function' &&
+                        'isSorted' in col &&
+                        'isSortedDesc' in col
+                      );
+                    }
+                    const sortProps = hasSortProps(column) ? column.getSortByToggleProps() : undefined;
                     return (
                       <th
-                        {...column.getHeaderProps(col.getSortByToggleProps ? col.getSortByToggleProps() : undefined)}
+                        {...column.getHeaderProps(sortProps)}
                         className="p-3 border-b cursor-pointer text-black bg-white text-lg font-semibold"
                         key={column.id}
                       >
                         {column.render('Header')}
                         <span>
-                          {col.isSorted ? (col.isSortedDesc ? ' 🔽' : ' 🔼') : ''}
+                          {hasSortProps(column) && column.isSorted ? (column.isSortedDesc ? ' 🔽' : ' 🔼') : ''}
                         </span>
                       </th>
                     );
