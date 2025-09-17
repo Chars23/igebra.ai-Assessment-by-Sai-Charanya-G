@@ -95,7 +95,16 @@ const StudentTable: React.FC<StudentTableProps> = ({ data }) => {
                         id: string | number;
                         render: (type: string) => React.ReactNode;
                       };
-                      const sortProps = hasSortProps(columnUnknown) ? (columnUnknown as any).getSortByToggleProps() : undefined;
+                      let sortProps: object | undefined = undefined;
+                      if (hasSortProps(columnUnknown)) {
+                        sortProps = (columnUnknown as { getSortByToggleProps: () => object }).getSortByToggleProps();
+                      }
+                      let isSorted = false;
+                      let isSortedDesc = false;
+                      if (hasSortProps(columnUnknown)) {
+                        isSorted = (columnUnknown as { isSorted: boolean }).isSorted;
+                        isSortedDesc = (columnUnknown as { isSortedDesc: boolean }).isSortedDesc;
+                      }
                       return (
                         <th
                           {...column.getHeaderProps(sortProps)}
@@ -104,7 +113,7 @@ const StudentTable: React.FC<StudentTableProps> = ({ data }) => {
                         >
                           {column.render('Header')}
                           <span>
-                            {hasSortProps(columnUnknown) && (columnUnknown as any).isSorted ? ((columnUnknown as any).isSortedDesc ? ' 🔽' : ' 🔼') : ''}
+                            {isSorted ? (isSortedDesc ? ' 🔽' : ' 🔼') : ''}
                           </span>
                         </th>
                       );
@@ -132,7 +141,8 @@ const StudentTable: React.FC<StudentTableProps> = ({ data }) => {
                   cells: unknown[];
                   original: unknown;
                 };
-                prepareRow(row as any);
+                // prepareRow expects a specific type, but we avoid 'any' by using unknown and type assertion to unknown first
+                prepareRow(row as unknown);
                 return (
                   <tr {...row.getRowProps()} key={String(row.id)}>
                     {row.cells.map((cellUnknown) => {
