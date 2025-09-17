@@ -5,19 +5,7 @@ import BarChart from "../components/BarChart";
 import ScatterPlot from "../components/ScatterPlot";
 import RadarChart from "../components/RadarChart";
 import StudentTable from "../components/StudentTable";
-
-interface Student {
-  student_id: string;
-  name: string;
-  class: string;
-  comprehension: number;
-  attention: number;
-  focus: number;
-  retention: number;
-  engagement_time: number;
-  assessment_score: number;
-  persona: string;
-}
+import { Student } from "../types/Student"; // ✅ shared type
 
 const parseRow = (keys: string[], values: string[]): Student => {
   return {
