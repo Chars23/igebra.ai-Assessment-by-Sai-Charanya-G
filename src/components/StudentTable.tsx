@@ -86,7 +86,7 @@ const StudentTable: React.FC<StudentTableProps> = ({ data }) => {
         value={state.globalFilter || ""}
         onChange={(e) => setGlobalFilter(e.target.value)}
         placeholder="Search students..."
-        className="mb-4 px-3 py-2 border rounded-md w-full"
+        className="mb-4 px-3 py-2 border rounded-md w-full text-black"
       />
       <table
         {...getTableProps()}

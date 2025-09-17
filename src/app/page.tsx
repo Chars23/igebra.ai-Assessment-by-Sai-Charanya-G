@@ -136,6 +136,12 @@ const DashboardPage = () => {
         Cognitive Skills & Student Performance Dashboard
       </h1>
 
+      {/* Insights Section - moved to top */}
+      <section className="bg-black rounded-2xl shadow-card p-6 mb-8">
+        <h2 className="text-2xl font-bold mb-4 text-white">Insights: Key Findings</h2>
+        <p className="text-white text-base font-medium">{insight}</p>
+      </section>
+
       {/* Overview Stats */}
       <section className="bg-white rounded-2xl shadow-card p-6 border border-gray-200">
         <h2 className="text-2xl font-bold mb-4 text-black">Overview Stats (Avg Scores & Skills)</h2>
@@ -152,7 +158,7 @@ const DashboardPage = () => {
           <h2 className="font-semibold mb-2 text-black text-lg">Scatter: Attention vs Performance</h2>
           <ScatterPlot data={scatter} />
         </div>
-        <div className="bg-white rounded-2xl shadow-card p-6 border border-gray-200 flex flex-col">
+        <div className="bg-white rounded-2xl shadow-card p-8 border border-gray-200 flex flex-col md:col-span-1" style={{ minHeight: '420px', minWidth: '420px', maxWidth: '100%' }}>
           <h2 className="font-semibold mb-2 text-black text-lg">Radar: Student Profile</h2>
           <select
             className="mb-4 p-2 border-2 border-black rounded-lg focus:ring-2 focus:ring-black/30 outline-none text-black bg-white"
@@ -170,7 +176,9 @@ const DashboardPage = () => {
               </option>
             ))}
           </select>
-          <RadarChart labels={[...radar.labels]} data={radar.data} />
+          <div className="flex-1 flex items-center justify-center">
+            <RadarChart labels={[...radar.labels]} data={radar.data} />
+          </div>
         </div>
       </section>
 
@@ -178,12 +186,6 @@ const DashboardPage = () => {
       <section className="bg-white rounded-2xl shadow-card p-6 border border-gray-200">
         <h2 className="text-2xl font-bold mb-4 text-black">Student Table (Searchable & Sortable)</h2>
         <StudentTable data={students} />
-      </section>
-
-      {/* Insights Section */}
-      <section className="bg-black rounded-2xl shadow-card p-6">
-        <h2 className="text-2xl font-bold mb-4 text-white">Insights: Key Findings</h2>
-        <p className="text-white text-base font-medium">{insight}</p>
       </section>
     </div>
   );
