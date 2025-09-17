@@ -1,103 +1,135 @@
-import Image from "next/image";
+"use client";
+import React, { useEffect, useState } from 'react';
+import OverviewStats from '../components/OverviewStats';
+import BarChart from '../components/BarChart';
+import ScatterPlot from '../components/ScatterPlot';
+import RadarChart from '../components/RadarChart';
+import StudentTable from '../components/StudentTable';
 
-export default function Home() {
+interface Student {
+  student_id: string;
+  name: string;
+  class: string;
+  comprehension: number;
+  attention: number;
+  focus: number;
+  retention: number;
+  engagement_time: number;
+  assessment_score: number;
+  persona: string;
+}
+
+const fetchData = async (): Promise<Student[]> => {
+  const res = await fetch('/student_cognitive_skills_persona.csv');
+  const text = await res.text();
+  const [header, ...rows] = text.trim().split('\n');
+  const keys = header.split(',');
+  return rows.map(row => {
+    const values = row.split(',');
+    const obj: any = {};
+    keys.forEach((key, i) => {
+      obj[key] = isNaN(Number(values[i])) ? values[i] : Number(values[i]);
+    });
+    return obj as Student;
+  });
+};
+
+const getAverages = (data: Student[]) => {
+  const keys = ['comprehension','attention','focus','retention','engagement_time','assessment_score'];
+  const stats: any = {};
+  keys.forEach(key => {
+    stats[key] = data.reduce((sum, s) => sum + (s as any)[key], 0) / data.length;
+  });
+  return stats;
+};
+
+const getBarData = (data: Student[]) => {
+  const skills = ['comprehension','attention','focus','retention','engagement_time'];
+  return {
+    labels: skills,
+    data: skills.map(skill => data.reduce((sum, s) => sum + (s as any)[skill], 0) / data.length),
+  };
+};
+
+const getScatterData = (data: Student[]) =>
+  data.map(s => ({ x: s.attention, y: s.assessment_score }));
+
+const getRadarData = (student: Student) => {
+  const labels = ['comprehension','attention','focus','retention','engagement_time'];
+  const data = labels.map(label => (student as any)[label]);
+  return { labels, data };
+};
+
+const getInsights = (data: Student[]) => {
+  // Example: Find the skill with the highest correlation to assessment_score
+  const skills = ['comprehension','attention','focus','retention','engagement_time'];
+  let maxCorr = -Infinity;
+  let bestSkill = '';
+  skills.forEach(skill => {
+    const xs = data.map(s => (s as any)[skill]);
+    const ys = data.map(s => s.assessment_score);
+    const meanX = xs.reduce((a,b) => a+b,0)/xs.length;
+    const meanY = ys.reduce((a,b) => a+b,0)/ys.length;
+    const num = xs.map((x,i) => (x-meanX)*(ys[i]-meanY)).reduce((a,b)=>a+b,0);
+    const den = Math.sqrt(xs.map(x=>(x-meanX)**2).reduce((a,b)=>a+b,0) * ys.map(y=>(y-meanY)**2).reduce((a,b)=>a+b,0));
+    const corr = num/den;
+    if (corr > maxCorr) { maxCorr = corr; bestSkill = skill; }
+  });
+  return `Strongest correlation with assessment score: ${bestSkill} (${maxCorr.toFixed(2)})`;
+};
+
+const DashboardPage = () => {
+  const [students, setStudents] = useState<Student[]>([]);
+  const [selected, setSelected] = useState<Student | null>(null);
+  const [insight, setInsight] = useState('');
+
+  useEffect(() => {
+    fetchData().then(data => {
+      setStudents(data);
+      setSelected(data[0]);
+      setInsight(getInsights(data));
+    });
+  }, []);
+
+  if (!students.length) return <div className="p-8">Loading...</div>;
+  const averages = getAverages(students);
+  const bar = getBarData(students);
+  const scatter = getScatterData(students);
+  const radar = selected ? getRadarData(selected) : { labels: [], data: [] };
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="p-8 max-w-7xl mx-auto font-display bg-white min-h-screen">
+      <h1 className="text-4xl font-extrabold mb-6 text-black drop-shadow-lg tracking-tight">Cognitive Skills & Student Performance Dashboard</h1>
+      <OverviewStats stats={averages} />
+      <div className="grid md:grid-cols-2 gap-8 mb-8">
+        <div className="bg-white rounded-2xl shadow-card p-6 border border-gray-200">
+          <h2 className="font-semibold mb-2 text-black text-lg">Average Skill vs Assessment Score</h2>
+          <BarChart labels={bar.labels} data={bar.data} />
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        <div className="bg-white rounded-2xl shadow-card p-6 border border-gray-200">
+          <h2 className="font-semibold mb-2 text-black text-lg">Attention vs Assessment Score</h2>
+          <ScatterPlot data={scatter} />
+        </div>
+      </div>
+      <div className="bg-white rounded-2xl shadow-card p-6 mb-8 border border-gray-200">
+        <h2 className="font-semibold mb-2 text-black text-lg">Student Cognitive Skill Profile</h2>
+        <select className="mb-4 p-2 border-2 border-black rounded-lg focus:ring-2 focus:ring-black/30 outline-none text-black bg-white" aria-label="Select student for radar chart" value={selected?.student_id} onChange={e => setSelected(students.find(s => s.student_id === e.target.value) || null)}>
+          {students.map(s => (
+            <option key={s.student_id} value={s.student_id}>{s.name} ({s.class})</option>
+          ))}
+        </select>
+        <RadarChart labels={radar.labels} data={radar.data} />
+      </div>
+      <div className="bg-white rounded-2xl shadow-card p-6 mb-8 border border-gray-200">
+        <h2 className="font-semibold mb-2 text-black text-lg">Student Table</h2>
+        <StudentTable data={students} />
+      </div>
+      <div className="bg-black rounded-2xl shadow-card p-6">
+        <h2 className="font-semibold mb-2 text-white text-lg">Insights</h2>
+        <p className="text-white text-base font-medium">{insight}</p>
+      </div>
     </div>
   );
-}
+};
+
+export default DashboardPage;
