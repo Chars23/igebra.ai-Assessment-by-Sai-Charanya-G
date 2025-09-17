@@ -26,28 +26,35 @@ const fetchData = async (): Promise<Student[]> => {
   const keys = header.split(',');
   return rows.map(row => {
     const values = row.split(',');
-    const obj: any = {};
+    const obj: Record<string, string | number> = {};
     keys.forEach((key, i) => {
       obj[key] = isNaN(Number(values[i])) ? values[i] : Number(values[i]);
     });
-    return obj as Student;
+  return obj as unknown as Student;
   });
 };
 
 const getAverages = (data: Student[]) => {
-  const keys = ['comprehension','attention','focus','retention','engagement_time','assessment_score'];
-  const stats: any = {};
+  const keys = ['comprehension','attention','focus','retention','engagement_time','assessment_score'] as const;
+  const stats: Record<typeof keys[number], number> = {
+    comprehension: 0,
+    attention: 0,
+    focus: 0,
+    retention: 0,
+    engagement_time: 0,
+    assessment_score: 0,
+  };
   keys.forEach(key => {
-    stats[key] = data.reduce((sum, s) => sum + (s as any)[key], 0) / data.length;
+    stats[key] = data.reduce((sum, s) => sum + s[key], 0) / data.length;
   });
   return stats;
 };
 
 const getBarData = (data: Student[]) => {
-  const skills = ['comprehension','attention','focus','retention','engagement_time'];
+  const skills = ['comprehension','attention','focus','retention','engagement_time'] as const;
   return {
-    labels: skills,
-    data: skills.map(skill => data.reduce((sum, s) => sum + (s as any)[skill], 0) / data.length),
+    labels: skills.slice(),
+    data: skills.map(skill => data.reduce((sum, s) => sum + s[skill], 0) / data.length),
   };
 };
 
@@ -55,18 +62,18 @@ const getScatterData = (data: Student[]) =>
   data.map(s => ({ x: s.attention, y: s.assessment_score }));
 
 const getRadarData = (student: Student) => {
-  const labels = ['comprehension','attention','focus','retention','engagement_time'];
-  const data = labels.map(label => (student as any)[label]);
-  return { labels, data };
+  const labels = ['comprehension','attention','focus','retention','engagement_time'] as const;
+  const data = labels.map(label => student[label]);
+  return { labels: labels.slice(), data };
 };
 
 const getInsights = (data: Student[]) => {
   // Example: Find the skill with the highest correlation to assessment_score
-  const skills = ['comprehension','attention','focus','retention','engagement_time'];
+  const skills = ['comprehension','attention','focus','retention','engagement_time'] as const;
   let maxCorr = -Infinity;
   let bestSkill = '';
   skills.forEach(skill => {
-    const xs = data.map(s => (s as any)[skill]);
+    const xs = data.map(s => s[skill]);
     const ys = data.map(s => s.assessment_score);
     const meanX = xs.reduce((a,b) => a+b,0)/xs.length;
     const meanY = ys.reduce((a,b) => a+b,0)/ys.length;
