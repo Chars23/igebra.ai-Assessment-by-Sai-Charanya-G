@@ -1,13 +1,6 @@
 // src/components/StudentTable.tsx
 import React, { useMemo } from "react";
-import {
-  useTable,
-  useSortBy,
-  useGlobalFilter,
-  type Column,
-  type HeaderGroup,
-  type ColumnInstance,
-} from "react-table";
+import { useTable, useSortBy, useGlobalFilter } from "react-table";
 
 type Student = {
   student_id: string;
@@ -21,7 +14,7 @@ interface StudentTableProps {
 }
 
 const StudentTable: React.FC<StudentTableProps> = ({ data }) => {
-  const columns: Column<Student>[] = useMemo(
+  const columns = useMemo(
     () => [
       { Header: "ID", accessor: "student_id" },
       { Header: "Name", accessor: "name" },
@@ -39,7 +32,7 @@ const StudentTable: React.FC<StudentTableProps> = ({ data }) => {
     prepareRow,
     state,
     setGlobalFilter,
-  } = useTable<Student>(
+  } = useTable(
     {
       columns,
       data,
@@ -63,43 +56,42 @@ const StudentTable: React.FC<StudentTableProps> = ({ data }) => {
         className="min-w-full bg-white border border-gray-300"
       >
         <thead>
-          {headerGroups.map(
-            (headerGroup: HeaderGroup<Student>, headerGroupIdx: number) => (
-              <tr
-                {...headerGroup.getHeaderGroupProps()}
-                key={headerGroup.id || headerGroupIdx}
-              >
-                {headerGroup.headers.map(
-                  (column: ColumnInstance<Student>, columnIdx: number) => (
-                    <th
-                      {...column.getHeaderProps(
-                        column.getSortByToggleProps?.() ?? {}
-                      )}
-                      key={column.id || columnIdx}
-                      className="px-4 py-2 border-b bg-gray-100 text-left font-medium text-gray-700"
-                    >
-                      {column.render("Header")}
-                      <span>
-                        {column.isSorted
-                          ? column.isSortedDesc
-                            ? " 🔽"
-                            : " 🔼"
-                          : ""}
-                      </span>
-                    </th>
-                  )
-                )}
-              </tr>
-            )
-          )}
+          {headerGroups.map((headerGroup: any, headerGroupIdx: number) => (
+            <tr
+              {...headerGroup.getHeaderGroupProps()}
+              key={headerGroup.id || headerGroupIdx}
+            >
+              {headerGroup.headers.map((column: any, columnIdx: number) => {
+                const sortProps = column.getSortByToggleProps
+                  ? column.getSortByToggleProps()
+                  : {};
+                return (
+                  <th
+                    {...column.getHeaderProps(sortProps)}
+                    key={column.id || columnIdx}
+                    className="px-4 py-2 border-b bg-gray-100 text-left font-medium text-gray-700"
+                  >
+                    {column.render("Header")}
+                    <span>
+                      {column.isSorted
+                        ? column.isSortedDesc
+                          ? " 🔽"
+                          : " 🔼"
+                        : ""}
+                    </span>
+                  </th>
+                );
+              })}
+            </tr>
+          ))}
         </thead>
         <tbody {...getTableBodyProps()}>
           {rows.length > 0 ? (
-            rows.map((row, rowIdx) => {
+            rows.map((row: any, rowIdx: number) => {
               prepareRow(row);
               return (
                 <tr {...row.getRowProps()} key={row.id || rowIdx}>
-                  {row.cells.map((cell, cellIdx) => (
+                  {row.cells.map((cell: any, cellIdx: number) => (
                     <td
                       {...cell.getCellProps()}
                       key={cell.column.id || cellIdx}
