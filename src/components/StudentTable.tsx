@@ -6,7 +6,6 @@ import {
   HeaderGroup,
   Row,
   Cell,
-  Column as TableColumn, // ✅ Rename import to avoid conflict
 } from "react-table";
 
 interface Student {
@@ -27,7 +26,8 @@ interface StudentTableProps {
 }
 
 const StudentTable: React.FC<StudentTableProps> = ({ data }) => {
-  const columns = React.useMemo<TableColumn<Student>[]>(
+  // ✅ Remove Column type — just let TS infer
+  const columns = React.useMemo(
     () => [
       { Header: "ID", accessor: "student_id" },
       { Header: "Name", accessor: "name" },
