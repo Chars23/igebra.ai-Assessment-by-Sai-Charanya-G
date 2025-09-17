@@ -82,28 +82,20 @@ const StudentTable: React.FC<StudentTableProps> = ({ data }) => {
                         !('id' in columnUnknown) ||
                         !('render' in columnUnknown)
                       ) {
-                        return null;
+                        return <React.Fragment key={colIdx} />;
                       }
-                      const column = columnUnknown as {
+                      type ColumnType = {
                         getHeaderProps: (props?: object) => object;
                         id: string | number;
                         render: (type: string) => React.ReactNode;
+                        getSortByToggleProps?: () => object;
+                        isSorted?: boolean;
+                        isSortedDesc?: boolean;
                       };
-                      let sortProps: object | undefined = undefined;
-                      let isSorted = false;
-                      let isSortedDesc = false;
-                      if (
-                        'getSortByToggleProps' in columnUnknown &&
-                        typeof (columnUnknown as { getSortByToggleProps: unknown }).getSortByToggleProps === 'function'
-                      ) {
-                        sortProps = (columnUnknown as { getSortByToggleProps: () => object }).getSortByToggleProps();
-                      }
-                      if ('isSorted' in columnUnknown && typeof (columnUnknown as { isSorted: unknown }).isSorted === 'boolean') {
-                        isSorted = (columnUnknown as { isSorted: boolean }).isSorted;
-                      }
-                      if ('isSortedDesc' in columnUnknown && typeof (columnUnknown as { isSortedDesc: unknown }).isSortedDesc === 'boolean') {
-                        isSortedDesc = (columnUnknown as { isSortedDesc: boolean }).isSortedDesc;
-                      }
+                      const column = columnUnknown as ColumnType;
+                      const sortProps = column.getSortByToggleProps ? column.getSortByToggleProps() : undefined;
+                      const isSorted = column.isSorted ?? false;
+                      const isSortedDesc = column.isSortedDesc ?? false;
                       return (
                         <th
                           {...column.getHeaderProps(sortProps)}
@@ -150,13 +142,14 @@ const StudentTable: React.FC<StudentTableProps> = ({ data }) => {
                         !('column' in cellUnknown) ||
                         !('render' in cellUnknown)
                       ) {
-                        return null;
+                        return <React.Fragment key={cellIdx} />;
                       }
-                      const cell = cellUnknown as {
+                      type CellType = {
                         getCellProps: () => object;
                         column: { id: string | number };
                         render: (type: string) => React.ReactNode;
                       };
+                      const cell = cellUnknown as CellType;
                       return (
                         <td {...cell.getCellProps()} className="p-2 border-b text-center text-black text-base" key={String(cell.column.id) || cellIdx}>
                           {cell.render('Cell')}
