@@ -2,6 +2,31 @@
 import React, { useMemo } from "react";
 import { useTable, useSortBy, useGlobalFilter } from "react-table";
 
+// Minimal local types to satisfy TypeScript and ESLint
+type LocalHeaderGroup = {
+  id: string;
+  headers: LocalColumn[];
+  getHeaderGroupProps: () => Record<string, unknown>;
+};
+type LocalColumn = {
+  id: string;
+  getHeaderProps: (props?: Record<string, unknown>) => Record<string, unknown>;
+  getSortByToggleProps?: () => Record<string, unknown>;
+  render: (type: string) => React.ReactNode;
+  isSorted?: boolean;
+  isSortedDesc?: boolean;
+};
+type LocalRow = {
+  id: string;
+  getRowProps: () => Record<string, unknown>;
+  cells: LocalCell[];
+};
+type LocalCell = {
+  column: { id: string };
+  getCellProps: () => Record<string, unknown>;
+  render: (type: string) => React.ReactNode;
+};
+
 type Student = {
   student_id: string;
   name: string;
@@ -56,12 +81,12 @@ const StudentTable: React.FC<StudentTableProps> = ({ data }) => {
         className="min-w-full bg-white border border-gray-300"
       >
         <thead>
-          {headerGroups.map((headerGroup: any, headerGroupIdx: number) => (
+          {headerGroups.map((headerGroup: LocalHeaderGroup, headerGroupIdx: number) => (
             <tr
               {...headerGroup.getHeaderGroupProps()}
               key={headerGroup.id || headerGroupIdx}
             >
-              {headerGroup.headers.map((column: any, columnIdx: number) => {
+              {headerGroup.headers.map((column: LocalColumn, columnIdx: number) => {
                 const sortProps = column.getSortByToggleProps
                   ? column.getSortByToggleProps()
                   : {};
@@ -87,11 +112,11 @@ const StudentTable: React.FC<StudentTableProps> = ({ data }) => {
         </thead>
         <tbody {...getTableBodyProps()}>
           {rows.length > 0 ? (
-            rows.map((row: any, rowIdx: number) => {
+            rows.map((row: LocalRow, rowIdx: number) => {
               prepareRow(row);
               return (
                 <tr {...row.getRowProps()} key={row.id || rowIdx}>
-                  {row.cells.map((cell: any, cellIdx: number) => (
+                  {row.cells.map((cell: LocalCell, cellIdx: number) => (
                     <td
                       {...cell.getCellProps()}
                       key={cell.column.id || cellIdx}
