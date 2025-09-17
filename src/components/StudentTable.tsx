@@ -1,44 +1,30 @@
-import React from "react";
+// src/components/StudentTable.tsx
+import React, { useMemo } from "react";
 import {
   useTable,
-  useGlobalFilter,
   useSortBy,
-  HeaderGroup,
-  Row,
-  Cell,
-  ColumnInstance,
+  useGlobalFilter,
+  type Column,
 } from "react-table";
 
-interface Student {
+type Student = {
   student_id: string;
   name: string;
-  class: string;
-  comprehension: number;
-  attention: number;
-  focus: number;
-  retention: number;
-  engagement_time: number;
-  assessment_score: number;
-  persona: string;
-}
+  email: string;
+  course: string;
+};
 
 interface StudentTableProps {
   data: Student[];
 }
 
 const StudentTable: React.FC<StudentTableProps> = ({ data }) => {
-  const columns = React.useMemo(
+  const columns: Column<Student>[] = useMemo(
     () => [
       { Header: "ID", accessor: "student_id" },
       { Header: "Name", accessor: "name" },
-      { Header: "Class", accessor: "class" },
-      { Header: "Comprehension", accessor: "comprehension" },
-      { Header: "Attention", accessor: "attention" },
-      { Header: "Focus", accessor: "focus" },
-      { Header: "Retention", accessor: "retention" },
-      { Header: "Engagement Time", accessor: "engagement_time" },
-      { Header: "Assessment Score", accessor: "assessment_score" },
-      { Header: "Persona", accessor: "persona" },
+      { Header: "Email", accessor: "email" },
+      { Header: "Course", accessor: "course" },
     ],
     []
   );
@@ -51,84 +37,87 @@ const StudentTable: React.FC<StudentTableProps> = ({ data }) => {
     prepareRow,
     state,
     setGlobalFilter,
-  } = useTable({ columns, data }, useGlobalFilter, useSortBy);
+  } = useTable<Student>(
+    {
+      columns,
+      data,
+    },
+    useGlobalFilter,
+    useSortBy
+  );
 
   const hasQuery = (state.globalFilter || "").trim().length > 0;
 
   return (
-    <div>
+    <div className="overflow-x-auto">
       <input
-        className="mb-4 p-2 border-2 border-black rounded-lg w-full focus:ring-2 focus:ring-black/30 outline-none text-black bg-white"
         value={state.globalFilter || ""}
         onChange={(e) => setGlobalFilter(e.target.value)}
-        placeholder="Search by name, class, or persona (anonymous, e.g., 'High Performer', 'Average Learner', 'At-risk Student')"
+        placeholder="Search students..."
+        className="mb-4 px-3 py-2 border rounded-md w-full"
       />
-      {hasQuery ? (
-        <div className="overflow-x-auto">
-          <table
-            {...getTableProps()}
-            className="min-w-full bg-white rounded-xl shadow-card border border-gray-200"
-          >
-            <thead>
-              {headerGroups.map(
-                (headerGroup: HeaderGroup<Student>, headerGroupIdx: number) => (
-                  <tr
-                    {...headerGroup.getHeaderGroupProps()}
-                    key={headerGroup.id || headerGroupIdx}
-                  >
-                    {headerGroup.headers.map(
-                      (column: ColumnInstance<Student>, colIdx: number) => {
-                        const sortProps = column.getSortByToggleProps
-                          ? column.getSortByToggleProps()
-                          : {};
-                        return (
-                          <th
-                            {...column.getHeaderProps(sortProps)}
-                            className="p-3 border-b cursor-pointer text-black bg-white text-lg font-semibold"
-                            key={column.id || colIdx}
-                          >
-                            {column.render("Header")}
-                            <span>
-                              {column.isSorted
-                                ? column.isSortedDesc
-                                  ? " 🔽"
-                                  : " 🔼"
-                                : ""}
-                            </span>
-                          </th>
-                        );
-                      }
-                    )}
-                  </tr>
-                )
-              )}
-            </thead>
-            <tbody {...getTableBodyProps()}>
-              {rows.map((row: Row<Student>, rowIdx: number) => {
-                prepareRow(row);
-                return (
-                  <tr {...row.getRowProps()} key={row.id || rowIdx}>
-                    {row.cells.map((cell: Cell<Student>, cellIdx: number) => (
-                      <td
-                        {...cell.getCellProps()}
-                        className="p-2 border-b text-center text-black text-base"
-                        key={cell.column.id || cellIdx}
-                      >
-                        {cell.render("Cell")}
-                      </td>
-                    ))}
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      ) : (
-        <div className="text-gray-500 text-center py-8">
-          Start typing to search for students by name, class, or persona. No
-          data is shown until you search.
-        </div>
-      )}
+      <table
+        {...getTableProps()}
+        className="min-w-full bg-white border border-gray-300"
+      >
+        <thead>
+          {headerGroups.map((headerGroup, headerGroupIdx) => (
+            <tr
+              {...headerGroup.getHeaderGroupProps()}
+              key={headerGroup.id || headerGroupIdx}
+            >
+              {headerGroup.headers.map((column, columnIdx) => (
+                <th
+                  {...column.getHeaderProps(
+                    // react-table doesn’t type sort props perfectly, so we cast
+                    (column as any).getSortByToggleProps?.() ?? {}
+                  )}
+                  key={column.id || columnIdx}
+                  className="px-4 py-2 border-b bg-gray-100 text-left font-medium text-gray-700"
+                >
+                  {column.render("Header")}
+                  <span>
+                    {(column as any).isSorted
+                      ? (column as any).isSortedDesc
+                        ? " 🔽"
+                        : " 🔼"
+                      : ""}
+                  </span>
+                </th>
+              ))}
+            </tr>
+          ))}
+        </thead>
+        <tbody {...getTableBodyProps()}>
+          {rows.length > 0 ? (
+            rows.map((row, rowIdx) => {
+              prepareRow(row);
+              return (
+                <tr {...row.getRowProps()} key={row.id || rowIdx}>
+                  {row.cells.map((cell, cellIdx) => (
+                    <td
+                      {...cell.getCellProps()}
+                      key={cell.column.id || cellIdx}
+                      className="px-4 py-2 border-b text-gray-600"
+                    >
+                      {cell.render("Cell")}
+                    </td>
+                  ))}
+                </tr>
+              );
+            })
+          ) : (
+            <tr>
+              <td
+                colSpan={columns.length}
+                className="px-4 py-6 text-center text-gray-500"
+              >
+                {hasQuery ? "No matching students found" : "No students"}
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
     </div>
   );
 };
