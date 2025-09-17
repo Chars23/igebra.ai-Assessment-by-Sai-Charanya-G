@@ -30,30 +30,43 @@ const fetchData = async (): Promise<Student[]> => {
     keys.forEach((key, i) => {
       obj[key] = isNaN(Number(values[i])) ? values[i] : Number(values[i]);
     });
+    // Type guard to ensure all required fields exist
+    if (
+      typeof obj['student_id'] === 'string' &&
+      typeof obj['name'] === 'string' &&
+      typeof obj['class'] === 'string' &&
+      typeof obj['comprehension'] === 'number' &&
+      typeof obj['attention'] === 'number' &&
+      typeof obj['focus'] === 'number' &&
+      typeof obj['retention'] === 'number' &&
+      typeof obj['engagement_time'] === 'number' &&
+      typeof obj['assessment_score'] === 'number' &&
+      typeof obj['persona'] === 'string'
+    ) {
   return obj as unknown as Student;
+    }
+    throw new Error('Invalid student data');
   });
 };
 
 const getAverages = (data: Student[]) => {
   const keys = ['comprehension','attention','focus','retention','engagement_time','assessment_score'] as const;
-  const stats: Record<typeof keys[number], number> = {
-    comprehension: 0,
-    attention: 0,
-    focus: 0,
-    retention: 0,
-    engagement_time: 0,
-    assessment_score: 0,
+  const stats = {
+    comprehension: data.reduce((sum, s) => sum + s.comprehension, 0) / data.length,
+    attention: data.reduce((sum, s) => sum + s.attention, 0) / data.length,
+    focus: data.reduce((sum, s) => sum + s.focus, 0) / data.length,
+    retention: data.reduce((sum, s) => sum + s.retention, 0) / data.length,
+    engagement_time: data.reduce((sum, s) => sum + s.engagement_time, 0) / data.length,
+    assessment_score: data.reduce((sum, s) => sum + s.assessment_score, 0) / data.length,
   };
-  keys.forEach(key => {
-    stats[key] = data.reduce((sum, s) => sum + s[key], 0) / data.length;
-  });
   return stats;
 };
 
 const getBarData = (data: Student[]) => {
   const skills = ['comprehension','attention','focus','retention','engagement_time'] as const;
+  type SkillKey = typeof skills[number];
   return {
-    labels: skills.slice(),
+    labels: skills,
     data: skills.map(skill => data.reduce((sum, s) => sum + s[skill], 0) / data.length),
   };
 };
@@ -63,13 +76,15 @@ const getScatterData = (data: Student[]) =>
 
 const getRadarData = (student: Student) => {
   const labels = ['comprehension','attention','focus','retention','engagement_time'] as const;
+  type SkillKey = typeof labels[number];
   const data = labels.map(label => student[label]);
-  return { labels: labels.slice(), data };
+  return { labels, data };
 };
 
 const getInsights = (data: Student[]) => {
   // Example: Find the skill with the highest correlation to assessment_score
   const skills = ['comprehension','attention','focus','retention','engagement_time'] as const;
+  type SkillKey = typeof skills[number];
   let maxCorr = -Infinity;
   let bestSkill = '';
   skills.forEach(skill => {
@@ -111,7 +126,7 @@ const DashboardPage = () => {
       <div className="grid md:grid-cols-2 gap-8 mb-8">
         <div className="bg-white rounded-2xl shadow-card p-6 border border-gray-200">
           <h2 className="font-semibold mb-2 text-black text-lg">Average Skill vs Assessment Score</h2>
-          <BarChart labels={bar.labels} data={bar.data} />
+          <BarChart labels={bar.labels.slice()} data={bar.data} />
         </div>
         <div className="bg-white rounded-2xl shadow-card p-6 border border-gray-200">
           <h2 className="font-semibold mb-2 text-black text-lg">Attention vs Assessment Score</h2>
@@ -125,7 +140,7 @@ const DashboardPage = () => {
             <option key={s.student_id} value={s.student_id}>{s.name} ({s.class})</option>
           ))}
         </select>
-        <RadarChart labels={radar.labels} data={radar.data} />
+  <RadarChart labels={Array.isArray(radar.labels) ? radar.labels.slice() : []} data={radar.data} />
       </div>
       <div className="bg-white rounded-2xl shadow-card p-6 mb-8 border border-gray-200">
         <h2 className="font-semibold mb-2 text-black text-lg">Student Table</h2>
