@@ -58,8 +58,7 @@ const StudentTable: React.FC<StudentTableProps> = ({ data }) => {
         <div className="overflow-x-auto">
           <table {...getTableProps()} className="min-w-full bg-white rounded-xl shadow-card border border-gray-200">
             <thead>
-              {(headerGroups as unknown[]).map((headerGroupUnknown) => {
-                // type guard for headerGroup
+              {(headerGroups as unknown[]).map((headerGroupUnknown, headerGroupIdx) => {
                 if (
                   typeof headerGroupUnknown !== 'object' ||
                   headerGroupUnknown === null ||
@@ -75,41 +74,42 @@ const StudentTable: React.FC<StudentTableProps> = ({ data }) => {
                   id: string | number;
                 };
                 return (
-                  <tr {...headerGroup.getHeaderGroupProps()} key={String(headerGroup.id)}>
-                    {headerGroup.headers.map((columnUnknown) => {
-                      // Type guard for dynamic react-table properties (no 'any' usage)
-                      const hasSortProps = (
-                        col: unknown
-                      ): col is { getSortByToggleProps: () => object; isSorted: boolean; isSortedDesc: boolean } => {
-                        return (
-                          typeof col === 'object' &&
-                          col !== null &&
-                          'getSortByToggleProps' in col &&
-                          typeof (col as Record<string, unknown>).getSortByToggleProps === 'function' &&
-                          'isSorted' in col &&
-                          'isSortedDesc' in col
-                        );
-                      };
+                  <tr {...headerGroup.getHeaderGroupProps()} key={String(headerGroup.id) || headerGroupIdx}>
+                    {headerGroup.headers.map((columnUnknown, colIdx) => {
+                      if (
+                        typeof columnUnknown !== 'object' ||
+                        columnUnknown === null ||
+                        !('getHeaderProps' in columnUnknown) ||
+                        !('id' in columnUnknown) ||
+                        !('render' in columnUnknown)
+                      ) {
+                        return null;
+                      }
                       const column = columnUnknown as {
                         getHeaderProps: (props?: object) => object;
                         id: string | number;
                         render: (type: string) => React.ReactNode;
                       };
                       let sortProps: object | undefined = undefined;
-                      if (hasSortProps(columnUnknown)) {
-                        sortProps = (columnUnknown as { getSortByToggleProps: () => object }).getSortByToggleProps();
-                      }
                       let isSorted = false;
                       let isSortedDesc = false;
-                      if (hasSortProps(columnUnknown)) {
+                      if (
+                        'getSortByToggleProps' in columnUnknown &&
+                        typeof (columnUnknown as { getSortByToggleProps: unknown }).getSortByToggleProps === 'function'
+                      ) {
+                        sortProps = (columnUnknown as { getSortByToggleProps: () => object }).getSortByToggleProps();
+                      }
+                      if ('isSorted' in columnUnknown && typeof (columnUnknown as { isSorted: unknown }).isSorted === 'boolean') {
                         isSorted = (columnUnknown as { isSorted: boolean }).isSorted;
+                      }
+                      if ('isSortedDesc' in columnUnknown && typeof (columnUnknown as { isSortedDesc: unknown }).isSortedDesc === 'boolean') {
                         isSortedDesc = (columnUnknown as { isSortedDesc: boolean }).isSortedDesc;
                       }
                       return (
                         <th
                           {...column.getHeaderProps(sortProps)}
                           className="p-3 border-b cursor-pointer text-black bg-white text-lg font-semibold"
-                          key={String(column.id)}
+                          key={String(column.id) || colIdx}
                         >
                           {column.render('Header')}
                           <span>
@@ -123,8 +123,7 @@ const StudentTable: React.FC<StudentTableProps> = ({ data }) => {
               })}
             </thead>
             <tbody {...getTableBodyProps()}>
-              {(rows as unknown[]).map((rowUnknown) => {
-                // type guard for row
+              {(rows as unknown[]).map((rowUnknown, rowIdx) => {
                 if (
                   typeof rowUnknown !== 'object' ||
                   rowUnknown === null ||
@@ -141,12 +140,10 @@ const StudentTable: React.FC<StudentTableProps> = ({ data }) => {
                   cells: unknown[];
                   original: unknown;
                 };
-                // prepareRow expects a specific type, but we avoid 'any' by using unknown and type assertion to unknown first
                 prepareRow(row as unknown);
                 return (
-                  <tr {...row.getRowProps()} key={String(row.id)}>
-                    {row.cells.map((cellUnknown) => {
-                      // type guard for cell
+                  <tr {...row.getRowProps()} key={String(row.id) || rowIdx}>
+                    {row.cells.map((cellUnknown, cellIdx) => {
                       if (
                         typeof cellUnknown !== 'object' ||
                         cellUnknown === null ||
@@ -162,7 +159,7 @@ const StudentTable: React.FC<StudentTableProps> = ({ data }) => {
                         render: (type: string) => React.ReactNode;
                       };
                       return (
-                        <td {...cell.getCellProps()} className="p-2 border-b text-center text-black text-base" key={String(cell.column.id)}>
+                        <td {...cell.getCellProps()} className="p-2 border-b text-center text-black text-base" key={String(cell.column.id) || cellIdx}>
                           {cell.render('Cell')}
                         </td>
                       );
