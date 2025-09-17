@@ -11,6 +11,8 @@ const parseRow = (keys: string[], values: string[]): Student => {
   return {
     student_id: values[keys.indexOf("student_id")],
     name: values[keys.indexOf("name")],
+    email: values[keys.indexOf("email")],
+    course: values[keys.indexOf("course")],
     class: values[keys.indexOf("class")],
     comprehension: Number(values[keys.indexOf("comprehension")]),
     attention: Number(values[keys.indexOf("attention")]),
