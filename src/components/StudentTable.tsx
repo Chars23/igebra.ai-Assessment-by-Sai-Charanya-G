@@ -1,5 +1,6 @@
 import React from 'react';
-import { useTable, useGlobalFilter, useSortBy, HeaderGroup, Row, Cell } from 'react-table';
+import { useTable, useGlobalFilter, useSortBy } from 'react-table';
+import type { Row, Cell } from 'react-table';
 
 interface Student {
   student_id: string;
@@ -57,47 +58,105 @@ const StudentTable: React.FC<StudentTableProps> = ({ data }) => {
         <div className="overflow-x-auto">
           <table {...getTableProps()} className="min-w-full bg-white rounded-xl shadow-card border border-gray-200">
             <thead>
-              {headerGroups.map((headerGroup: HeaderGroup<Student>) => (
-                <tr {...headerGroup.getHeaderGroupProps()} key={headerGroup.id}>
-                  {headerGroup.headers.map((column) => {
-                    // Type guard for dynamic react-table properties
-                    function hasSortProps(col: unknown): col is { getSortByToggleProps: () => object; isSorted: boolean; isSortedDesc: boolean } {
+              {(headerGroups as unknown[]).map((headerGroupUnknown) => {
+                // type guard for headerGroup
+                if (
+                  typeof headerGroupUnknown !== 'object' ||
+                  headerGroupUnknown === null ||
+                  !('getHeaderGroupProps' in headerGroupUnknown) ||
+                  !('headers' in headerGroupUnknown) ||
+                  !('id' in headerGroupUnknown)
+                ) {
+                  return null;
+                }
+                const headerGroup = headerGroupUnknown as {
+                  getHeaderGroupProps: () => object;
+                  headers: unknown[];
+                  id: string | number;
+                };
+                return (
+                  <tr {...headerGroup.getHeaderGroupProps()} key={String(headerGroup.id)}>
+                    {headerGroup.headers.map((columnUnknown) => {
+                      // Type guard for dynamic react-table properties (no 'any' usage)
+                      const hasSortProps = (
+                        col: unknown
+                      ): col is { getSortByToggleProps: () => object; isSorted: boolean; isSortedDesc: boolean } => {
+                        return (
+                          typeof col === 'object' &&
+                          col !== null &&
+                          'getSortByToggleProps' in col &&
+                          typeof (col as Record<string, unknown>).getSortByToggleProps === 'function' &&
+                          'isSorted' in col &&
+                          'isSortedDesc' in col
+                        );
+                      };
+                      const column = columnUnknown as {
+                        getHeaderProps: (props?: object) => object;
+                        id: string | number;
+                        render: (type: string) => React.ReactNode;
+                      };
+                      const sortProps = hasSortProps(columnUnknown) ? (columnUnknown as any).getSortByToggleProps() : undefined;
                       return (
-                        typeof col === 'object' &&
-                        col !== null &&
-                        'getSortByToggleProps' in col &&
-                        typeof (col as any).getSortByToggleProps === 'function' &&
-                        'isSorted' in col &&
-                        'isSortedDesc' in col
+                        <th
+                          {...column.getHeaderProps(sortProps)}
+                          className="p-3 border-b cursor-pointer text-black bg-white text-lg font-semibold"
+                          key={String(column.id)}
+                        >
+                          {column.render('Header')}
+                          <span>
+                            {hasSortProps(columnUnknown) && (columnUnknown as any).isSorted ? ((columnUnknown as any).isSortedDesc ? ' 🔽' : ' 🔼') : ''}
+                          </span>
+                        </th>
                       );
-                    }
-                    const sortProps = hasSortProps(column) ? column.getSortByToggleProps() : undefined;
-                    return (
-                      <th
-                        {...column.getHeaderProps(sortProps)}
-                        className="p-3 border-b cursor-pointer text-black bg-white text-lg font-semibold"
-                        key={column.id}
-                      >
-                        {column.render('Header')}
-                        <span>
-                          {hasSortProps(column) && column.isSorted ? (column.isSortedDesc ? ' 🔽' : ' 🔼') : ''}
-                        </span>
-                      </th>
-                    );
-                  })}
-                </tr>
-              ))}
+                    })}
+                  </tr>
+                );
+              })}
             </thead>
             <tbody {...getTableBodyProps()}>
-              {rows.map((row: Row<Student>) => {
-                prepareRow(row);
+              {(rows as unknown[]).map((rowUnknown) => {
+                // type guard for row
+                if (
+                  typeof rowUnknown !== 'object' ||
+                  rowUnknown === null ||
+                  !('getRowProps' in rowUnknown) ||
+                  !('id' in rowUnknown) ||
+                  !('cells' in rowUnknown) ||
+                  !('original' in rowUnknown)
+                ) {
+                  return null;
+                }
+                const row = rowUnknown as {
+                  getRowProps: () => object;
+                  id: string | number;
+                  cells: unknown[];
+                  original: unknown;
+                };
+                prepareRow(row as any);
                 return (
-                  <tr {...row.getRowProps()} key={row.id}>
-                    {row.cells.map((cell: Cell<Student>) => (
-                      <td {...cell.getCellProps()} className="p-2 border-b text-center text-black text-base" key={cell.column.id}>
-                        {cell.render('Cell')}
-                      </td>
-                    ))}
+                  <tr {...row.getRowProps()} key={String(row.id)}>
+                    {row.cells.map((cellUnknown) => {
+                      // type guard for cell
+                      if (
+                        typeof cellUnknown !== 'object' ||
+                        cellUnknown === null ||
+                        !('getCellProps' in cellUnknown) ||
+                        !('column' in cellUnknown) ||
+                        !('render' in cellUnknown)
+                      ) {
+                        return null;
+                      }
+                      const cell = cellUnknown as {
+                        getCellProps: () => object;
+                        column: { id: string | number };
+                        render: (type: string) => React.ReactNode;
+                      };
+                      return (
+                        <td {...cell.getCellProps()} className="p-2 border-b text-center text-black text-base" key={String(cell.column.id)}>
+                          {cell.render('Cell')}
+                        </td>
+                      );
+                    })}
                   </tr>
                 );
               })}
