@@ -6,6 +6,7 @@ import {
   HeaderGroup,
   Row,
   Cell,
+  ColumnInstance,
 } from "react-table";
 
 interface Student {
@@ -75,27 +76,29 @@ const StudentTable: React.FC<StudentTableProps> = ({ data }) => {
                     {...headerGroup.getHeaderGroupProps()}
                     key={headerGroup.id || headerGroupIdx}
                   >
-                    {headerGroup.headers.map((column: any, colIdx: number) => {
-                      const sortProps = column.getSortByToggleProps
-                        ? column.getSortByToggleProps()
-                        : {};
-                      return (
-                        <th
-                          {...column.getHeaderProps(sortProps)}
-                          className="p-3 border-b cursor-pointer text-black bg-white text-lg font-semibold"
-                          key={column.id || colIdx}
-                        >
-                          {column.render("Header")}
-                          <span>
-                            {column.isSorted
-                              ? column.isSortedDesc
-                                ? " 🔽"
-                                : " 🔼"
-                              : ""}
-                          </span>
-                        </th>
-                      );
-                    })}
+                    {headerGroup.headers.map(
+                      (column: ColumnInstance<Student>, colIdx: number) => {
+                        const sortProps = column.getSortByToggleProps
+                          ? column.getSortByToggleProps()
+                          : {};
+                        return (
+                          <th
+                            {...column.getHeaderProps(sortProps)}
+                            className="p-3 border-b cursor-pointer text-black bg-white text-lg font-semibold"
+                            key={column.id || colIdx}
+                          >
+                            {column.render("Header")}
+                            <span>
+                              {column.isSorted
+                                ? column.isSortedDesc
+                                  ? " 🔽"
+                                  : " 🔼"
+                                : ""}
+                            </span>
+                          </th>
+                        );
+                      }
+                    )}
                   </tr>
                 )
               )}
