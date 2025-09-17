@@ -3,10 +3,10 @@ import {
   useTable,
   useGlobalFilter,
   useSortBy,
-  type Column,
-  type HeaderGroup,
-  type Row,
-  type Cell,
+  HeaderGroup,
+  Row,
+  Cell,
+  Column as TableColumn, // ✅ Rename import to avoid conflict
 } from "react-table";
 
 interface Student {
@@ -27,7 +27,7 @@ interface StudentTableProps {
 }
 
 const StudentTable: React.FC<StudentTableProps> = ({ data }) => {
-  const columns = React.useMemo<Column<Student>[]>(
+  const columns = React.useMemo<TableColumn<Student>[]>(
     () => [
       { Header: "ID", accessor: "student_id" },
       { Header: "Name", accessor: "name" },
@@ -61,7 +61,7 @@ const StudentTable: React.FC<StudentTableProps> = ({ data }) => {
         className="mb-4 p-2 border-2 border-black rounded-lg w-full focus:ring-2 focus:ring-black/30 outline-none text-black bg-white"
         value={state.globalFilter || ""}
         onChange={(e) => setGlobalFilter(e.target.value)}
-        placeholder="Search by name, class, or persona (anonymous, e.g., 'High Performer', 'Average Learner', 'At-risk Student')"
+        placeholder="Search by name, class, or persona..."
       />
       {hasQuery ? (
         <div className="overflow-x-auto">
@@ -70,47 +70,42 @@ const StudentTable: React.FC<StudentTableProps> = ({ data }) => {
             className="min-w-full bg-white rounded-xl shadow-card border border-gray-200"
           >
             <thead>
-              {headerGroups.map(
-                (headerGroup: HeaderGroup<Student>, headerGroupIdx: number) => (
-                  <tr
-                    {...headerGroup.getHeaderGroupProps()}
-                    key={headerGroup.id || headerGroupIdx}
-                  >
-                    {headerGroup.headers.map((column, colIdx) => {
-                      const sortProps = column.getSortByToggleProps
-                        ? column.getSortByToggleProps()
-                        : {};
-                      return (
-                        <th
-                          {...column.getHeaderProps(sortProps)}
-                          className="p-3 border-b cursor-pointer text-black bg-white text-lg font-semibold"
-                          key={column.id || colIdx}
-                        >
-                          {column.render("Header")}
-                          <span>
-                            {column.isSorted
-                              ? column.isSortedDesc
-                                ? " 🔽"
-                                : " 🔼"
-                              : ""}
-                          </span>
-                        </th>
-                      );
-                    })}
-                  </tr>
-                )
-              )}
+              {headerGroups.map((headerGroup: HeaderGroup<Student>, idx) => (
+                <tr {...headerGroup.getHeaderGroupProps()} key={idx}>
+                  {headerGroup.headers.map((column, colIdx) => {
+                    const sortProps = column.getSortByToggleProps
+                      ? column.getSortByToggleProps()
+                      : {};
+                    return (
+                      <th
+                        {...column.getHeaderProps(sortProps)}
+                        className="p-3 border-b cursor-pointer text-black bg-white text-lg font-semibold"
+                        key={colIdx}
+                      >
+                        {column.render("Header")}
+                        <span>
+                          {column.isSorted
+                            ? column.isSortedDesc
+                              ? " 🔽"
+                              : " 🔼"
+                            : ""}
+                        </span>
+                      </th>
+                    );
+                  })}
+                </tr>
+              ))}
             </thead>
             <tbody {...getTableBodyProps()}>
-              {rows.map((row: Row<Student>, rowIdx: number) => {
+              {rows.map((row: Row<Student>, rowIdx) => {
                 prepareRow(row);
                 return (
-                  <tr {...row.getRowProps()} key={row.id || rowIdx}>
-                    {row.cells.map((cell: Cell<Student>, cellIdx: number) => (
+                  <tr {...row.getRowProps()} key={rowIdx}>
+                    {row.cells.map((cell: Cell<Student>, cellIdx) => (
                       <td
                         {...cell.getCellProps()}
                         className="p-2 border-b text-center text-black text-base"
-                        key={cell.column.id || cellIdx}
+                        key={cellIdx}
                       >
                         {cell.render("Cell")}
                       </td>
@@ -123,8 +118,7 @@ const StudentTable: React.FC<StudentTableProps> = ({ data }) => {
         </div>
       ) : (
         <div className="text-gray-500 text-center py-8">
-          Start typing to search for students by name, class, or persona. No data
-          is shown until you search.
+          Start typing to search for students...
         </div>
       )}
     </div>
