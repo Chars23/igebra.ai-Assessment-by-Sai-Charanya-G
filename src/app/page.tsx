@@ -1,10 +1,10 @@
 "use client";
-import React, { useEffect, useState } from 'react';
-import OverviewStats from '../components/OverviewStats';
-import BarChart from '../components/BarChart';
-import ScatterPlot from '../components/ScatterPlot';
-import RadarChart from '../components/RadarChart';
-import StudentTable from '../components/StudentTable';
+import React, { useEffect, useState } from "react";
+import OverviewStats from "../components/OverviewStats";
+import BarChart from "../components/BarChart";
+import ScatterPlot from "../components/ScatterPlot";
+import RadarChart from "../components/RadarChart";
+import StudentTable from "../components/StudentTable";
 
 interface Student {
   student_id: string;
@@ -19,32 +19,30 @@ interface Student {
   persona: string;
 }
 
+const parseRow = (keys: string[], values: string[]): Student => {
+  return {
+    student_id: values[keys.indexOf("student_id")],
+    name: values[keys.indexOf("name")],
+    class: values[keys.indexOf("class")],
+    comprehension: Number(values[keys.indexOf("comprehension")]),
+    attention: Number(values[keys.indexOf("attention")]),
+    focus: Number(values[keys.indexOf("focus")]),
+    retention: Number(values[keys.indexOf("retention")]),
+    engagement_time: Number(values[keys.indexOf("engagement_time")]),
+    assessment_score: Number(values[keys.indexOf("assessment_score")]),
+    persona: values[keys.indexOf("persona")],
+  };
+};
+
 const fetchData = async (): Promise<Student[]> => {
-  const res = await fetch('/student_cognitive_skills_persona.csv');
+  const res = await fetch("/student_cognitive_skills_persona.csv");
   const text = await res.text();
-  const [header, ...rows] = text.trim().split('\n');
-  const keys = header.split(',');
-  return rows.map((row: string) => {
-    const values = row.split(',');
-    const obj: Record<string, string | number> = {};
-    keys.forEach((key: string, i: number) => {
-      obj[key] = isNaN(Number(values[i])) ? values[i] : Number(values[i]);
-    });
-    if (
-      typeof obj['student_id'] === 'string' &&
-      typeof obj['name'] === 'string' &&
-      typeof obj['class'] === 'string' &&
-      typeof obj['comprehension'] === 'number' &&
-      typeof obj['attention'] === 'number' &&
-      typeof obj['focus'] === 'number' &&
-      typeof obj['retention'] === 'number' &&
-      typeof obj['engagement_time'] === 'number' &&
-      typeof obj['assessment_score'] === 'number' &&
-      typeof obj['persona'] === 'string'
-    ) {
-      return obj as Student;
-    }
-    throw new Error('Invalid student data');
+  const [header, ...rows] = text.trim().split("\n");
+  const keys = header.split(",");
+
+  return rows.map((row) => {
+    const values = row.split(",");
+    return parseRow(keys, values);
   });
 };
 
@@ -53,15 +51,25 @@ const getAverages = (data: Student[]) => ({
   attention: data.reduce((sum, s) => sum + s.attention, 0) / data.length,
   focus: data.reduce((sum, s) => sum + s.focus, 0) / data.length,
   retention: data.reduce((sum, s) => sum + s.retention, 0) / data.length,
-  engagement_time: data.reduce((sum, s) => sum + s.engagement_time, 0) / data.length,
-  assessment_score: data.reduce((sum, s) => sum + s.assessment_score, 0) / data.length,
+  engagement_time:
+    data.reduce((sum, s) => sum + s.engagement_time, 0) / data.length,
+  assessment_score:
+    data.reduce((sum, s) => sum + s.assessment_score, 0) / data.length,
 });
 
 const getBarData = (data: Student[]) => {
-  const skills = ['comprehension','attention','focus','retention','engagement_time'] as const;
+  const skills = [
+    "comprehension",
+    "attention",
+    "focus",
+    "retention",
+    "engagement_time",
+  ] as const;
   return {
     labels: skills,
-    data: skills.map((skill) => data.reduce((sum, s) => sum + s[skill], 0) / data.length),
+    data: skills.map(
+      (skill) => data.reduce((sum, s) => sum + s[skill], 0) / data.length
+    ),
   };
 };
 
@@ -69,24 +77,38 @@ const getScatterData = (data: Student[]) =>
   data.map((s: Student) => ({ x: s.attention, y: s.assessment_score }));
 
 const getRadarData = (student: Student) => {
-  const labels = ['comprehension','attention','focus','retention','engagement_time'] as const;
+  const labels = [
+    "comprehension",
+    "attention",
+    "focus",
+    "retention",
+    "engagement_time",
+  ] as const;
   const data = labels.map((label) => student[label]);
   return { labels, data };
 };
 
 const getInsights = (data: Student[]) => {
-  const skills = ['comprehension','attention','focus','retention','engagement_time'] as const;
+  const skills = [
+    "comprehension",
+    "attention",
+    "focus",
+    "retention",
+    "engagement_time",
+  ] as const;
   let maxCorr = -Infinity;
-  let bestSkill = '';
+  let bestSkill = "";
   skills.forEach((skill) => {
     const xs = data.map((s) => s[skill]);
     const ys = data.map((s) => s.assessment_score);
     const meanX = xs.reduce((a, b) => a + b, 0) / xs.length;
     const meanY = ys.reduce((a, b) => a + b, 0) / ys.length;
-    const num = xs.map((x, i) => (x - meanX) * (ys[i] - meanY)).reduce((a, b) => a + b, 0);
+    const num = xs
+      .map((x, i) => (x - meanX) * (ys[i] - meanY))
+      .reduce((a, b) => a + b, 0);
     const den = Math.sqrt(
       xs.map((x) => (x - meanX) ** 2).reduce((a, b) => a + b, 0) *
-      ys.map((y) => (y - meanY) ** 2).reduce((a, b) => a + b, 0)
+        ys.map((y) => (y - meanY) ** 2).reduce((a, b) => a + b, 0)
     );
     const corr = num / den;
     if (corr > maxCorr) {
@@ -94,13 +116,15 @@ const getInsights = (data: Student[]) => {
       bestSkill = skill;
     }
   });
-  return `Strongest correlation with assessment score: ${bestSkill} (${maxCorr.toFixed(2)})`;
+  return `Strongest correlation with assessment score: ${bestSkill} (${maxCorr.toFixed(
+    2
+  )})`;
 };
 
 const DashboardPage = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [selected, setSelected] = useState<Student | null>(null);
-  const [insight, setInsight] = useState('');
+  const [insight, setInsight] = useState("");
 
   useEffect(() => {
     fetchData().then((data) => {
@@ -124,22 +148,30 @@ const DashboardPage = () => {
       <OverviewStats stats={averages} />
       <div className="grid md:grid-cols-2 gap-8 mb-8">
         <div className="bg-white rounded-2xl shadow-card p-6 border border-gray-200">
-          <h2 className="font-semibold mb-2 text-black text-lg">Average Skill vs Assessment Score</h2>
+          <h2 className="font-semibold mb-2 text-black text-lg">
+            Average Skill vs Assessment Score
+          </h2>
           <BarChart labels={[...bar.labels]} data={bar.data} />
         </div>
         <div className="bg-white rounded-2xl shadow-card p-6 border border-gray-200">
-          <h2 className="font-semibold mb-2 text-black text-lg">Attention vs Assessment Score</h2>
+          <h2 className="font-semibold mb-2 text-black text-lg">
+            Attention vs Assessment Score
+          </h2>
           <ScatterPlot data={scatter} />
         </div>
       </div>
       <div className="bg-white rounded-2xl shadow-card p-6 mb-8 border border-gray-200">
-        <h2 className="font-semibold mb-2 text-black text-lg">Student Cognitive Skill Profile</h2>
+        <h2 className="font-semibold mb-2 text-black text-lg">
+          Student Cognitive Skill Profile
+        </h2>
         <select
           className="mb-4 p-2 border-2 border-black rounded-lg focus:ring-2 focus:ring-black/30 outline-none text-black bg-white"
           aria-label="Select student for radar chart"
           value={selected?.student_id}
           onChange={(e) =>
-            setSelected(students.find((s) => s.student_id === e.target.value) || null)
+            setSelected(
+              students.find((s) => s.student_id === e.target.value) || null
+            )
           }
         >
           {students.map((s) => (
