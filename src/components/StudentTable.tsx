@@ -1,5 +1,5 @@
 import React from 'react';
-import { useTable, useGlobalFilter, useSortBy } from 'react-table';
+import { useTable, useGlobalFilter, useSortBy, HeaderGroup, Row, Cell } from 'react-table';
 
 interface Student {
   student_id: string;
@@ -42,7 +42,7 @@ const StudentTable: React.FC<StudentTableProps> = ({ data }) => {
     prepareRow,
     state,
     setGlobalFilter,
-  } = useTable({ columns, data }, useGlobalFilter, useSortBy);
+  } = useTable<Student>({ columns, data }, useGlobalFilter, useSortBy);
 
   const hasQuery = (state.globalFilter || '').trim().length > 0;
   return (
@@ -57,29 +57,33 @@ const StudentTable: React.FC<StudentTableProps> = ({ data }) => {
         <div className="overflow-x-auto">
           <table {...getTableProps()} className="min-w-full bg-white rounded-xl shadow-card border border-gray-200">
             <thead>
-              {headerGroups.map((headerGroup) => (
+              {headerGroups.map((headerGroup: HeaderGroup<Student>) => (
                 <tr {...headerGroup.getHeaderGroupProps()} key={headerGroup.id}>
-                  {headerGroup.headers.map((column) => (
-                    <th
-                      {...column.getHeaderProps(column.getSortByToggleProps())}
-                      className="p-3 border-b cursor-pointer text-black bg-white text-lg font-semibold"
-                      key={column.id}
-                    >
-                      {column.render('Header')}
-                      <span>
-                        {column.isSorted ? (column.isSortedDesc ? ' 🔽' : ' 🔼') : ''}
-                      </span>
-                    </th>
-                  ))}
+                  {headerGroup.headers.map((column) => {
+                    // react-table's types don't include getSortByToggleProps/isSorted, so we cast to any for those only
+                    const col = column as HeaderGroup<Student> & { getSortByToggleProps?: () => any; isSorted?: boolean; isSortedDesc?: boolean };
+                    return (
+                      <th
+                        {...column.getHeaderProps(col.getSortByToggleProps ? col.getSortByToggleProps() : undefined)}
+                        className="p-3 border-b cursor-pointer text-black bg-white text-lg font-semibold"
+                        key={column.id}
+                      >
+                        {column.render('Header')}
+                        <span>
+                          {col.isSorted ? (col.isSortedDesc ? ' 🔽' : ' 🔼') : ''}
+                        </span>
+                      </th>
+                    );
+                  })}
                 </tr>
               ))}
             </thead>
             <tbody {...getTableBodyProps()}>
-              {rows.map((row) => {
+              {rows.map((row: Row<Student>) => {
                 prepareRow(row);
                 return (
                   <tr {...row.getRowProps()} key={row.id}>
-                    {row.cells.map((cell) => (
+                    {row.cells.map((cell: Cell<Student>) => (
                       <td {...cell.getCellProps()} className="p-2 border-b text-center text-black text-base" key={cell.column.id}>
                         {cell.render('Cell')}
                       </td>
