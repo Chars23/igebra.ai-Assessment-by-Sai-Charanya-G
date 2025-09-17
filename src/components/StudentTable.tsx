@@ -30,8 +30,14 @@ type LocalCell = {
 type Student = {
   student_id: string;
   name: string;
-  email: string;
-  course: string;
+  class: string;
+  comprehension: number;
+  attention: number;
+  focus: number;
+  retention: number;
+  engagement_time: number;
+  assessment_score: number;
+  persona: string;
 };
 
 interface StudentTableProps {
@@ -43,8 +49,14 @@ const StudentTable: React.FC<StudentTableProps> = ({ data }) => {
     () => [
       { Header: "ID", accessor: "student_id" },
       { Header: "Name", accessor: "name" },
-      { Header: "Email", accessor: "email" },
-      { Header: "Course", accessor: "course" },
+      { Header: "Class", accessor: "class" },
+      { Header: "Comprehension", accessor: "comprehension" },
+      { Header: "Attention", accessor: "attention" },
+      { Header: "Focus", accessor: "focus" },
+      { Header: "Retention", accessor: "retention" },
+      { Header: "Engagement Time", accessor: "engagement_time" },
+      { Header: "Assessment Score", accessor: "assessment_score" },
+      { Header: "Persona", accessor: "persona" },
     ],
     []
   );

@@ -131,55 +131,60 @@ const DashboardPage = () => {
   const radar = selected ? getRadarData(selected) : { labels: [], data: [] };
 
   return (
-    <div className="p-8 max-w-7xl mx-auto font-display bg-white min-h-screen">
-      <h1 className="text-4xl font-extrabold mb-6 text-black drop-shadow-lg tracking-tight">
+    <div className="p-8 max-w-7xl mx-auto font-display bg-white min-h-screen space-y-10">
+      <h1 className="text-4xl font-extrabold mb-8 text-black drop-shadow-lg tracking-tight text-center">
         Cognitive Skills & Student Performance Dashboard
       </h1>
-      <OverviewStats stats={averages} />
-      <div className="grid md:grid-cols-2 gap-8 mb-8">
-        <div className="bg-white rounded-2xl shadow-card p-6 border border-gray-200">
-          <h2 className="font-semibold mb-2 text-black text-lg">
-            Average Skill vs Assessment Score
-          </h2>
+
+      {/* Overview Stats */}
+      <section className="bg-white rounded-2xl shadow-card p-6 border border-gray-200">
+        <h2 className="text-2xl font-bold mb-4 text-black">Overview Stats (Avg Scores & Skills)</h2>
+        <OverviewStats stats={averages} />
+      </section>
+
+      {/* Charts Section */}
+      <section className="grid md:grid-cols-3 gap-8">
+        <div className="bg-white rounded-2xl shadow-card p-6 border border-gray-200 flex flex-col">
+          <h2 className="font-semibold mb-2 text-black text-lg">Bar Chart: Skill vs Score</h2>
           <BarChart labels={[...bar.labels]} data={bar.data} />
         </div>
-        <div className="bg-white rounded-2xl shadow-card p-6 border border-gray-200">
-          <h2 className="font-semibold mb-2 text-black text-lg">
-            Attention vs Assessment Score
-          </h2>
+        <div className="bg-white rounded-2xl shadow-card p-6 border border-gray-200 flex flex-col">
+          <h2 className="font-semibold mb-2 text-black text-lg">Scatter: Attention vs Performance</h2>
           <ScatterPlot data={scatter} />
         </div>
-      </div>
-      <div className="bg-white rounded-2xl shadow-card p-6 mb-8 border border-gray-200">
-        <h2 className="font-semibold mb-2 text-black text-lg">
-          Student Cognitive Skill Profile
-        </h2>
-        <select
-          className="mb-4 p-2 border-2 border-black rounded-lg focus:ring-2 focus:ring-black/30 outline-none text-black bg-white"
-          aria-label="Select student for radar chart"
-          value={selected?.student_id}
-          onChange={(e) =>
-            setSelected(
-              students.find((s) => s.student_id === e.target.value) || null
-            )
-          }
-        >
-          {students.map((s) => (
-            <option key={s.student_id} value={s.student_id}>
-              {s.name} ({s.class})
-            </option>
-          ))}
-        </select>
-        <RadarChart labels={[...radar.labels]} data={radar.data} />
-      </div>
-      <div className="bg-white rounded-2xl shadow-card p-6 mb-8 border border-gray-200">
-        <h2 className="font-semibold mb-2 text-black text-lg">Student Table</h2>
+        <div className="bg-white rounded-2xl shadow-card p-6 border border-gray-200 flex flex-col">
+          <h2 className="font-semibold mb-2 text-black text-lg">Radar: Student Profile</h2>
+          <select
+            className="mb-4 p-2 border-2 border-black rounded-lg focus:ring-2 focus:ring-black/30 outline-none text-black bg-white"
+            aria-label="Select student for radar chart"
+            value={selected?.student_id}
+            onChange={(e) =>
+              setSelected(
+                students.find((s) => s.student_id === e.target.value) || null
+              )
+            }
+          >
+            {students.map((s) => (
+              <option key={s.student_id} value={s.student_id}>
+                {s.name} ({s.class})
+              </option>
+            ))}
+          </select>
+          <RadarChart labels={[...radar.labels]} data={radar.data} />
+        </div>
+      </section>
+
+      {/* Student Table */}
+      <section className="bg-white rounded-2xl shadow-card p-6 border border-gray-200">
+        <h2 className="text-2xl font-bold mb-4 text-black">Student Table (Searchable & Sortable)</h2>
         <StudentTable data={students} />
-      </div>
-      <div className="bg-black rounded-2xl shadow-card p-6">
-        <h2 className="font-semibold mb-2 text-white text-lg">Insights</h2>
+      </section>
+
+      {/* Insights Section */}
+      <section className="bg-black rounded-2xl shadow-card p-6">
+        <h2 className="text-2xl font-bold mb-4 text-white">Insights: Key Findings</h2>
         <p className="text-white text-base font-medium">{insight}</p>
-      </div>
+      </section>
     </div>
   );
 };
