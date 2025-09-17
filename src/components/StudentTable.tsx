@@ -5,6 +5,8 @@ import {
   useSortBy,
   useGlobalFilter,
   type Column,
+  type HeaderGroup,
+  type ColumnInstance,
 } from "react-table";
 
 type Student = {
@@ -61,32 +63,35 @@ const StudentTable: React.FC<StudentTableProps> = ({ data }) => {
         className="min-w-full bg-white border border-gray-300"
       >
         <thead>
-          {headerGroups.map((headerGroup, headerGroupIdx) => (
-            <tr
-              {...headerGroup.getHeaderGroupProps()}
-              key={headerGroup.id || headerGroupIdx}
-            >
-              {headerGroup.headers.map((column, columnIdx) => (
-                <th
-                  {...column.getHeaderProps(
-                    // react-table doesn’t type sort props perfectly, so we cast
-                    (column as any).getSortByToggleProps?.() ?? {}
-                  )}
-                  key={column.id || columnIdx}
-                  className="px-4 py-2 border-b bg-gray-100 text-left font-medium text-gray-700"
-                >
-                  {column.render("Header")}
-                  <span>
-                    {(column as any).isSorted
-                      ? (column as any).isSortedDesc
-                        ? " 🔽"
-                        : " 🔼"
-                      : ""}
-                  </span>
-                </th>
-              ))}
-            </tr>
-          ))}
+          {headerGroups.map(
+            (headerGroup: HeaderGroup<Student>, headerGroupIdx: number) => (
+              <tr
+                {...headerGroup.getHeaderGroupProps()}
+                key={headerGroup.id || headerGroupIdx}
+              >
+                {headerGroup.headers.map(
+                  (column: ColumnInstance<Student>, columnIdx: number) => (
+                    <th
+                      {...column.getHeaderProps(
+                        column.getSortByToggleProps?.() ?? {}
+                      )}
+                      key={column.id || columnIdx}
+                      className="px-4 py-2 border-b bg-gray-100 text-left font-medium text-gray-700"
+                    >
+                      {column.render("Header")}
+                      <span>
+                        {column.isSorted
+                          ? column.isSortedDesc
+                            ? " 🔽"
+                            : " 🔼"
+                          : ""}
+                      </span>
+                    </th>
+                  )
+                )}
+              </tr>
+            )
+          )}
         </thead>
         <tbody {...getTableBodyProps()}>
           {rows.length > 0 ? (
