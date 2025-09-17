@@ -1,6 +1,5 @@
 import React from 'react';
 import { useTable, useGlobalFilter, useSortBy } from 'react-table';
-import type { Row, Cell } from 'react-table';
 
 interface Student {
   student_id: string;
@@ -43,7 +42,7 @@ const StudentTable: React.FC<StudentTableProps> = ({ data }) => {
     prepareRow,
     state,
     setGlobalFilter,
-  } = useTable<Student>({ columns, data }, useGlobalFilter, useSortBy);
+  } = useTable({ columns, data }, useGlobalFilter, useSortBy);
 
   const hasQuery = (state.globalFilter || '').trim().length > 0;
   return (
@@ -140,7 +139,7 @@ const StudentTable: React.FC<StudentTableProps> = ({ data }) => {
                   cells: unknown[];
                   original: unknown;
                 };
-                prepareRow(row as unknown);
+                prepareRow(row as never);
                 return (
                   <tr {...row.getRowProps()} key={String(row.id) || rowIdx}>
                     {row.cells.map((cellUnknown, cellIdx) => {
